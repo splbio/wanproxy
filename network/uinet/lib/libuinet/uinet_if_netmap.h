@@ -23,72 +23,10 @@
  * SUCH DAMAGE.
  */
 
+#ifndef _UINET_IF_NETMAP_H_
+#define _UINET_IF_NETMAP_H_
 
-#include <event/callback_thread.h>
-#include <event/event_callback.h>
-#include <event/event_system.h>
+int if_netmap_attach(struct uinet_config_if *cfg);
+int if_netmap_detach(struct uinet_config_if *cfg);
 
-#include <io/io_uinet.h>
-
-#include <uinet_api.h>
-
-IOUinet::IOUinet(void)
-	: log_("/io/uinet"),
-	  handler_thread_(new CallbackThread("UINET IOThread"))
-{
-}
-
-
-IOUinet::~IOUinet()
-{
-}
-
-
-int
-IOUinet::add_interface(const std::string& name, uinet_iftype_t type, unsigned int cdom, int cpu)
-{
-	int error;
-
-	error = uinet_ifcreate(name.c_str(), type, cdom, cpu);
-	return (uinet_errno_to_os(error));
-}
-
-
-int
-IOUinet::remove_interface(const std::string& name)
-{
-	int error;
-
-	error = uinet_ifdestroy(name.c_str());
-	return (uinet_errno_to_os(error));
-}
-
-
-int
-IOUinet::interface_up(const std::string& name, unsigned int qno, bool ispromisc)
-{
-	int error;
-
-	error = uinet_interface_up(name.c_str(), qno, ispromisc);
-	return (uinet_errno_to_os(error));
-}
-
-
-void
-IOUinet::start(bool enable_lo0)
-{
-	/*
-	 * Prepare system to handle UINET IO.
-	 */
-	INFO(log_) << "Starting UINET IO system.";
-
-	/*
-	 * XXX number of CPUs and limit on number of mbuf clusters should be
-	 * configurable
-	 */
-	uinet_init(1, 128*1024, enable_lo0);
-
-	handler_thread_->start();
-
-	EventSystem::instance()->thread_wait(handler_thread_);
-}
+#endif /* _UINET_IF_NETMAP_H_ */
